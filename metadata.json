@@ -1,0 +1,6 @@
+{
+  "name": "SkillSwap",
+  "description": "Trade Skills. Learn Together. Collaborative learning platform to exchange skills, find mentors, showcase portfolios, and chat in real-time.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
