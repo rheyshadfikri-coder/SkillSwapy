@@ -24,9 +24,9 @@ import {
   Sun,
   Moon
 } from 'lucide-react';
-import { User, Session, Message, Project, DiscussionPost } from './types';
+import { User, Session, Message, Project, DiscussionPost, Review } from './types';
 import { INITIAL_USERS, INITIAL_MESSAGES, INITIAL_PROJECTS, INITIAL_DISCUSSIONS, INITIAL_POSTS } from './data/initialData';
-import { getPersistedUsers, persistUserAccount, getPersistedSessions, persistSessions, getPersistedProjects, persistProjects } from './lib/db';
+import { getPersistedUsers, persistUserAccount, getPersistedSessions, persistSessions, getPersistedProjects, persistProjects, getPersistedReviews, persistReview } from './lib/db';
 
 // Component view imports
 import HomeView from './components/HomeView';
@@ -81,6 +81,7 @@ export default function App() {
     return getPersistedProjects();
   });
   const [forumPosts, setForumPosts] = useState<DiscussionPost[]>(INITIAL_POSTS);
+  const [reviews, setReviews] = useState<Review[]>([]);
 
   // Active chat partner pointer (facilitates instant boot parameters)
   const [activeChatPartnerId, setActiveChatPartnerId] = useState<string | null>(null);
@@ -109,11 +110,13 @@ export default function App() {
     ]);
   });
 
-  // Hot reload custom users from database upon boot
+  // Hot reload custom users and reviews from database upon boot
   useEffect(() => {
     async function initDb() {
       const dbUsers = await getPersistedUsers();
       setUsers(dbUsers);
+      const dbReviews = await getPersistedReviews();
+      setReviews(dbReviews);
     }
     initDb();
   }, []);
@@ -194,6 +197,11 @@ export default function App() {
   const handleUpdateSessions = (revisedSessions: Session[]) => {
     setSessions(revisedSessions);
     persistSessions(revisedSessions);
+  };
+
+  const handleAddReview = async (newRev: Review) => {
+    await persistReview(newRev);
+    setReviews(prev => [newRev, ...prev]);
   };
 
   const handleAddSession = (newSess: Session) => {
@@ -288,6 +296,8 @@ export default function App() {
             currentUser={currentUser}
             users={users}
             sessions={sessions}
+            reviews={reviews}
+            onAddReview={handleAddReview}
             onSelectMentor={handleSelectMentor}
             onUpdateSessions={handleUpdateSessions}
             onNavigate={handleLinkNavigate}
@@ -298,6 +308,7 @@ export default function App() {
         return (
           <ProfileView
             currentUser={currentUser}
+            reviews={reviews}
             onUpdateUser={async (updates) => {
               const u = { ...currentUser, ...updates };
               await persistUserAccount(u);

@@ -10,8 +10,8 @@ import {
   where,
   onSnapshot
 } from 'firebase/firestore';
-import { User, Project, DiscussionPost, Message, Session } from '../types';
-import { INITIAL_USERS, INITIAL_PROJECTS } from '../data/initialData';
+import { User, Project, DiscussionPost, Message, Session, Review } from '../types';
+import { INITIAL_USERS, INITIAL_PROJECTS, INITIAL_REVIEWS } from '../data/initialData';
 
 // Firestore operation types for our specialized handleFirestoreError
 enum OperationType {
@@ -193,5 +193,67 @@ export function persistProjects(projects: Project[]): void {
     localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
   } catch (err) {
     console.error('Failed to persist projects', err);
+  }
+}
+
+const REVIEWS_STORAGE_KEY = 'skillswap_reviews_db';
+
+/**
+ * Load peer reviews.
+ */
+export async function getPersistedReviews(): Promise<Review[]> {
+  if (isFirebaseActive && db) {
+    const reviewsColRef = collection(db, 'reviews');
+    try {
+      const querySnapshot = await getDocs(reviewsColRef);
+      const fbReviews: Review[] = [];
+      querySnapshot.forEach((doc) => {
+        fbReviews.push(doc.data() as Review);
+      });
+      
+      const merged = [...fbReviews];
+      INITIAL_REVIEWS.forEach(initRev => {
+        if (!merged.some(r => r.id === initRev.id)) {
+          merged.push(initRev);
+        }
+      });
+      return merged;
+    } catch (fbErr) {
+      console.warn('Firebase reviews collection read failed. Falling back to Local Storage.', fbErr);
+    }
+  }
+
+  try {
+    const stored = localStorage.getItem(REVIEWS_STORAGE_KEY);
+    if (!stored) {
+      localStorage.setItem(REVIEWS_STORAGE_KEY, JSON.stringify(INITIAL_REVIEWS));
+      return INITIAL_REVIEWS;
+    }
+    return JSON.parse(stored);
+  } catch (err) {
+    return INITIAL_REVIEWS;
+  }
+}
+
+/**
+ * Save peer review.
+ */
+export async function persistReview(review: Review): Promise<void> {
+  if (isFirebaseActive && db) {
+    const reviewPath = `reviews/${review.id}`;
+    try {
+      await setDoc(doc(db, 'reviews', review.id), review);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.WRITE, reviewPath);
+    }
+  }
+
+  try {
+    const allReviews = await getPersistedReviews();
+    // Prepend new review
+    const updated = [review, ...allReviews.filter(r => r.id !== review.id)];
+    localStorage.setItem(REVIEWS_STORAGE_KEY, JSON.stringify(updated));
+  } catch (err) {
+    console.error('Failed to save review to local database', err);
   }
 }

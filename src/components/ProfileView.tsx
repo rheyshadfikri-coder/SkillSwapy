@@ -5,15 +5,15 @@
 
 import React, { useState } from 'react';
 import { User, Review } from '../types';
-import { INITIAL_REVIEWS } from '../data/initialData';
 import { Star, ShieldAlert, Check, Globe, Github, Linkedin, Twitter, Sparkles, MessageCircle, Calendar, Clock } from 'lucide-react';
 
 interface ProfileViewProps {
   currentUser: User;
+  reviews: Review[];
   onUpdateUser: (updates: Partial<User>) => void;
 }
 
-export default function ProfileView({ currentUser, onUpdateUser }: ProfileViewProps) {
+export default function ProfileView({ currentUser, reviews, onUpdateUser }: ProfileViewProps) {
   const [bio, setBio] = useState(currentUser.bio || '');
   const [title, setTitle] = useState(currentUser.title || '');
   const [location, setLocation] = useState(currentUser.location || '');
@@ -27,7 +27,11 @@ export default function ProfileView({ currentUser, onUpdateUser }: ProfileViewPr
   const [success, setSuccess] = useState(false);
 
   // Filter reviews written for this specific user node
-  const userReviews = INITIAL_REVIEWS.filter(r => r.reviewedUserId === currentUser.id);
+  const userReviews = reviews.filter(r => r.reviewedUserId === currentUser.id);
+
+  const averageRating = userReviews.length > 0 
+    ? (userReviews.reduce((sum, r) => sum + r.rating, 0) / userReviews.length).toFixed(2)
+    : '5.00';
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -256,7 +260,7 @@ export default function ProfileView({ currentUser, onUpdateUser }: ProfileViewPr
             </div>
             <div className="space-y-2 text-xs font-sans text-slate-600">
               <p>📍 Status: <strong className="font-bold">{currentUser.reputationBadge || 'Expert Node'}</strong></p>
-              <p>⭐ Average Rating: <strong className="font-bold">4.92 / 5.0</strong></p>
+              <p>⭐ Average Rating: <strong className="font-bold">{averageRating} / 5.00</strong></p>
               <p>🔥 Account Strength: <strong className="font-bold">100% Secure</strong></p>
             </div>
           </div>

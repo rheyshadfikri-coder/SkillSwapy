@@ -5,13 +5,16 @@
 
 import React, { useState } from 'react';
 import { Award, CheckCircle, Zap, Users, GraduationCap, Star, BookOpen, Clock, Sparkles, MessageSquare } from 'lucide-react';
-import { User, Session, Achievement, Skill } from '../types';
+import { User, Session, Achievement, Skill, Review } from '../types';
 import { ALL_ACHIEVEMENTS } from '../data/initialData';
+import ReviewModal from './ReviewModal';
 
 interface DashboardViewProps {
   currentUser: User;
   users: User[];
   sessions: Session[];
+  reviews: Review[];
+  onAddReview: (review: Review) => void;
   onSelectMentor: (mentorId: string) => void;
   onUpdateSessions: (updated: Session[]) => void;
   onNavigate: (page: string) => void;
@@ -21,11 +24,21 @@ export default function DashboardView({
   currentUser, 
   users, 
   sessions, 
-  onSelectMentor, 
+  reviews,
+  onAddReview,
+  onSelectMentor,
   onUpdateSessions,
   onNavigate
 }: DashboardViewProps) {
   const [successBanner, setSuccessBanner] = useState('');
+  const [reviewingSession, setReviewingSession] = useState<Session | null>(null);
+  const [reviewingPartner, setReviewingPartner] = useState<User | null>(null);
+
+  // Filter reviews written for this specific user node
+  const userReviews = reviews.filter(r => r.reviewedUserId === currentUser.id);
+  const averageRating = userReviews.length > 0 
+    ? (userReviews.reduce((sum, r) => sum + r.rating, 0) / userReviews.length).toFixed(2)
+    : '5.00';
 
   // 1. Filter sessions relating directly to current user log
   const userSessions = sessions.filter(s => s.learnerId === currentUser.id || s.mentorId === currentUser.id);
@@ -48,6 +61,16 @@ export default function DashboardView({
     if (newStatus === 'completed') {
       setSuccessBanner('Session marked complete! +150 XP rewarded.');
       currentUser.xp += 150; // increment demo XP
+      
+      const targetSession = sessions.find(s => s.id === sessionId);
+      if (targetSession) {
+        const partnerId = targetSession.learnerId === currentUser.id ? targetSession.mentorId : targetSession.learnerId;
+        const partner = users.find(u => u.id === partnerId);
+        if (partner) {
+          setReviewingSession({ ...targetSession, status: 'completed' });
+          setReviewingPartner(partner);
+        }
+      }
     } else {
       setSuccessBanner('Session successfully cancelled.');
     }
@@ -193,7 +216,7 @@ export default function DashboardView({
             <Star className="h-5 w-5 fill-yellow-400 stroke-yellow-500" />
           </div>
           <div>
-            <h3 className="text-xl font-extrabold text-slate-900 dark:text-white font-display">4.92</h3>
+            <h3 className="text-xl font-extrabold text-slate-900 dark:text-white font-display">{averageRating}</h3>
             <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Reputation Grade</p>
           </div>
         </div>
@@ -227,57 +250,84 @@ export default function DashboardView({
               </div>
             ) : (
               <div className="space-y-3">
-                {userSessions.map((session) => (
-                  <div
-                    key={session.id}
-                    className="p-4 rounded-2xl border border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-900/40 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
-                  >
-                    <div className="text-left space-y-1">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className={`px-2 py-0.5 rounded text-[9px] font-extrabold uppercase ${
-                          session.learnerId === currentUser.id ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400' : 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400'
-                        }`}>
-                          {session.learnerId === currentUser.id ? 'STUDYING' : 'TEACHING'}
-                        </span>
-                        <h4 className="font-display text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200">
-                          {session.skillName}
-                        </h4>
-                      </div>
-                      <p className="text-[11px] text-slate-400 dark:text-slate-505 font-sans">
-                        Partner node: <strong className="font-semibold text-slate-600 dark:text-slate-400">{getPartnerName(session)}</strong>
-                      </p>
-                      <p className="text-[11px] text-slate-405 dark:text-slate-500">
-                        Scheduled: <strong className="font-semibold text-slate-750 dark:text-slate-350">{session.scheduledTime}</strong> ({session.duration} mins)
-                      </p>
-                    </div>
+                {userSessions.map((session) => {
+                  const partnerId = session.learnerId === currentUser.id ? session.mentorId : session.learnerId;
+                  const partner = users.find(u => u.id === partnerId);
+                  const hasSubmittedReview = reviews.some(r => r.reviewerId === currentUser.id && r.reviewedUserId === partnerId);
 
-                    {/* Status badge or Action keys */}
-                    <div className="flex gap-2 shrink-0 self-stretch sm:self-center justify-end">
-                      {session.status === 'ongoing' || session.status === 'pending' ? (
-                        <>
-                          <button
-                            onClick={() => handleSessionAction(session.id, 'completed')}
-                            className="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-lg text-[11px] font-bold border border-emerald-150 dark:border-emerald-900 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition cursor-pointer"
-                          >
-                            Mark Finished
-                          </button>
-                          <button
-                            onClick={() => handleSessionAction(session.id, 'cancelled')}
-                            className="px-3 py-1.5 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 rounded-lg text-[11px] font-bold border border-red-150 dark:border-red-900 hover:bg-red-100 dark:hover:bg-red-900/40 transition cursor-pointer"
-                          >
-                            Cancel
-                          </button>
-                        </>
-                      ) : (
-                        <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${
-                          session.status === 'completed' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-550'
-                        }`}>
-                          {session.status}
-                        </span>
-                      )}
+                  return (
+                    <div
+                      key={session.id}
+                      className="p-4 rounded-2xl border border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-900/40 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+                    >
+                      <div className="text-left space-y-1">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-extrabold uppercase ${
+                            session.learnerId === currentUser.id ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400' : 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400'
+                          }`}>
+                            {session.learnerId === currentUser.id ? 'STUDYING' : 'TEACHING'}
+                          </span>
+                          <h4 className="font-display text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200">
+                            {session.skillName}
+                          </h4>
+                        </div>
+                        <p className="text-[11px] text-slate-400 dark:text-slate-505 font-sans">
+                          Partner node: <strong className="font-semibold text-slate-600 dark:text-slate-400">{getPartnerName(session)}</strong>
+                        </p>
+                        <p className="text-[11px] text-slate-405 dark:text-slate-500">
+                          Scheduled: <strong className="font-semibold text-slate-750 dark:text-slate-350">{session.scheduledTime}</strong> ({session.duration} mins)
+                        </p>
+                      </div>
+
+                      {/* Status badge or Action keys */}
+                      <div className="flex gap-2 shrink-0 self-stretch sm:self-center justify-end items-center">
+                        {session.status === 'ongoing' || session.status === 'pending' ? (
+                          <>
+                            <button
+                              onClick={() => handleSessionAction(session.id, 'completed')}
+                              className="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-lg text-[11px] font-bold border border-emerald-150 dark:border-emerald-900 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 transition cursor-pointer"
+                            >
+                              Mark Finished
+                            </button>
+                            <button
+                              onClick={() => handleSessionAction(session.id, 'cancelled')}
+                              className="px-3 py-1.5 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 rounded-lg text-[11px] font-bold border border-red-150 dark:border-red-900 hover:bg-red-100 dark:hover:bg-red-900/40 transition cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider ${
+                              session.status === 'completed' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-550'
+                            }`}>
+                              {session.status}
+                            </span>
+                            {session.status === 'completed' && partner && (
+                              hasSubmittedReview ? (
+                                <div className="flex items-center gap-1 bg-yellow-50 dark:bg-yellow-950/30 px-2 py-1 rounded-lg border border-yellow-200 dark:border-yellow-900/35 text-yellow-600 dark:text-yellow-400">
+                                  <Star className="h-3 w-3 fill-yellow-400 stroke-yellow-500 animate-pulse" />
+                                  <span className="text-[10px] font-extrabold tracking-tight">Reviewed</span>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => {
+                                    setReviewingSession(session);
+                                    setReviewingPartner(partner);
+                                  }}
+                                  className="px-2.5 py-1 bg-yellow-500 hover:bg-yellow-600 text-white dark:text-slate-900 rounded-lg text-[10px] font-extrabold shadow-sm hover:shadow-yellow-500/25 transition-all duration-150 flex items-center gap-1 cursor-pointer select-none"
+                                >
+                                  <Star className="h-3 w-3 fill-white dark:fill-slate-900 stroke-none" />
+                                  <span>Rate Partner</span>
+                                </button>
+                              )
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -383,6 +433,20 @@ export default function DashboardView({
           </div>
         </div>
       </div>
+
+      {reviewingSession && reviewingPartner && (
+        <ReviewModal
+          isOpen={!!reviewingSession}
+          onClose={() => {
+            setReviewingSession(null);
+            setReviewingPartner(null);
+          }}
+          session={reviewingSession}
+          partner={reviewingPartner}
+          currentUser={currentUser}
+          onAddReview={onAddReview}
+        />
+      )}
     </div>
   );
 }
