@@ -57,6 +57,8 @@ export const INITIAL_USERS: User[] = [
     level: 5,
     interests: ['AI Research', 'Algorithmic Art', 'Indie Hacking'],
     skills: [], // will merge below
+    availabilities: ['Tuesday 13:00 - 15:00', 'Thursday 15:00 - 17:00'],
+    calendarEnabled: true,
     socialLinks: {
       github: 'https://github.com',
       linkedin: 'https://linkedin.com'
@@ -75,6 +77,8 @@ export const INITIAL_USERS: User[] = [
     level: 7,
     interests: ['Framer UI', 'Cinema 4D', 'Minimalist Architecture'],
     skills: [],
+    availabilities: ['Monday 09:00 - 11:00', 'Wednesday 13:00 - 15:00', 'Friday 15:00 - 17:00'],
+    calendarEnabled: true,
     socialLinks: {
       website: 'https://behance.net',
       linkedin: 'https://linkedin.com',
@@ -94,6 +98,8 @@ export const INITIAL_USERS: User[] = [
     level: 4,
     interests: ['Content Strategy', 'Indie Filmmaking', 'Crypto Architecture'],
     skills: [],
+    availabilities: ['Monday 15:00 - 17:00', 'Wednesday 15:00 - 17:00'],
+    calendarEnabled: true,
     socialLinks: {
       twitter: 'https://twitter.com',
       website: 'https://medium.com'
@@ -112,6 +118,8 @@ export const INITIAL_USERS: User[] = [
     level: 10,
     interests: ['Scalable Web', 'IoT Platforms', 'Coffee Brewing'],
     skills: [],
+    availabilities: ['Tuesday 09:00 - 11:00', 'Thursday 09:00 - 11:00'],
+    calendarEnabled: true,
     socialLinks: {
       github: 'https://github.com',
       linkedin: 'https://linkedin.com'
@@ -130,6 +138,8 @@ export const INITIAL_USERS: User[] = [
     level: 6,
     interests: ['D3 Diagrams', 'PostgreSQL Internals', 'Sci-fi Novels'],
     skills: [],
+    availabilities: ['Friday 09:00 - 11:00', 'Saturday 13:00 - 15:00'],
+    calendarEnabled: true,
     socialLinks: {
       github: 'https://github.com',
       website: 'https://observablehq.com'

@@ -4,9 +4,10 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { User, Message } from '../types';
+import { Send, Image, FilePlus, Sparkles, UserCheck, PhoneCall, AlertCircle, Laptop, GraduationCap, Calendar } from 'lucide-react';
+import { User, Message, Session } from '../types';
 import { INITIAL_MESSAGES } from '../data/initialData';
-import { Send, Image, FilePlus, Sparkles, UserCheck, PhoneCall, AlertCircle, Laptop, GraduationCap } from 'lucide-react';
+import BookingModal from './BookingModal';
 
 interface ChatSystemProps {
   currentUser: User;
@@ -14,6 +15,7 @@ interface ChatSystemProps {
   onSendMessage: (msg: Message) => void;
   messages: Message[];
   activeChatPartnerId?: string | null;
+  onAddSession?: (session: Session) => void;
 }
 
 export default function ChatSystem({ 
@@ -21,7 +23,8 @@ export default function ChatSystem({
   users, 
   onSendMessage, 
   messages,
-  activeChatPartnerId
+  activeChatPartnerId,
+  onAddSession
 }: ChatSystemProps) {
   // 1. Determine whom the current user can converse with (everyone except themselves)
   const chatPartners = users.filter(u => u.id !== currentUser.id);
@@ -41,6 +44,7 @@ export default function ChatSystem({
   const [messageText, setMessageText] = useState('');
   const [typing, setTyping] = useState(false);
   const [attachment, setAttachment] = useState<{ name: string; type: 'image' | 'file' } | null>(null);
+  const [bookingOpen, setBookingOpen] = useState(false);
 
   const activePartner = users.find(u => u.id === selectedPartnerId);
 
@@ -197,10 +201,14 @@ export default function ChatSystem({
                   </div>
                 </div>
 
-                <div className="flex gap-2 text-xs font-semibold px-3 py-1 bg-blue-50 text-blue-600 rounded-lg max-w-[130px] border border-blue-100">
-                  <PhoneCall className="h-4 w-4" />
-                  <span>Meet Scheduled</span>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setBookingOpen(true)}
+                  className="flex gap-1.5 items-center text-xs font-bold px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-650 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl shadow-xs cursor-pointer transition border border-transparent"
+                >
+                  <Calendar className="h-3.5 w-3.5" />
+                  <span>Book Slot</span>
+                </button>
               </div>
 
               {/* Chat conversations trail */}
@@ -344,6 +352,20 @@ export default function ChatSystem({
         </div>
 
       </div>
+
+      {bookingOpen && activePartner && (
+        <BookingModal
+          isOpen={bookingOpen}
+          onClose={() => setBookingOpen(false)}
+          mentor={activePartner}
+          currentUser={currentUser}
+          onBookSession={(newSess) => {
+            if (onAddSession) {
+              onAddSession(newSess);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

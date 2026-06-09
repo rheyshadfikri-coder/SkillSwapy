@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import { User, Review } from '../types';
 import { INITIAL_REVIEWS } from '../data/initialData';
-import { Star, ShieldAlert, Check, Globe, Github, Linkedin, Twitter, Sparkles, MessageCircle } from 'lucide-react';
+import { Star, ShieldAlert, Check, Globe, Github, Linkedin, Twitter, Sparkles, MessageCircle, Calendar, Clock } from 'lucide-react';
 
 interface ProfileViewProps {
   currentUser: User;
@@ -21,6 +21,9 @@ export default function ProfileView({ currentUser, onUpdateUser }: ProfileViewPr
   const [github, setGithub] = useState(currentUser.socialLinks?.github || '');
   const [linkedin, setLinkedin] = useState(currentUser.socialLinks?.linkedin || '');
 
+  const [calendarEnabled, setCalendarEnabled] = useState(currentUser.calendarEnabled ?? true);
+  const [availabilities, setAvailabilities] = useState<string[]>(currentUser.availabilities || []);
+
   const [success, setSuccess] = useState(false);
 
   // Filter reviews written for this specific user node
@@ -32,6 +35,8 @@ export default function ProfileView({ currentUser, onUpdateUser }: ProfileViewPr
       bio,
       title,
       location,
+      calendarEnabled,
+      availabilities,
       socialLinks: {
         website,
         github,
@@ -154,6 +159,81 @@ export default function ProfileView({ currentUser, onUpdateUser }: ProfileViewPr
                 />
               </div>
             </div>
+          </div>
+
+          {/* Calendar Toggle & Weekly Planner */}
+          <div className="space-y-4 pt-4 border-t border-slate-100">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">
+                  Calendar Swap Settings
+                </h4>
+                <p className="text-[11px] text-slate-500 font-sans">
+                  Enable learners to book time slots directly from your calendar availability.
+                </p>
+              </div>
+              
+              {/* Custom CSS Toggle Switch */}
+              <label className="relative inline-flex items-center cursor-pointer select-none shrink-0">
+                <input 
+                  type="checkbox" 
+                  checked={calendarEnabled} 
+                  onChange={(e) => setCalendarEnabled(e.target.checked)}
+                  className="sr-only peer" 
+                  id="calendarTogglerCheck"
+                />
+                <div className="w-11 h-6 bg-slate-200 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 dark:bg-slate-750 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-blue-600"></div>
+                <span className="ml-2 text-xs font-semibold text-slate-700 min-w-[45px]">
+                  {calendarEnabled ? 'Active' : 'Offline'}
+                </span>
+              </label>
+            </div>
+
+            {calendarEnabled && (
+              <div className="space-y-3 bg-slate-50/50 p-4 rounded-2xl border border-slate-150/65 transition-all">
+                <div className="flex items-center gap-1.5 pb-1 select-none">
+                  <Calendar className="h-4 w-4 text-blue-500" />
+                  <span className="text-xs font-extrabold text-slate-700 uppercase tracking-tight">Available Weekly Slots</span>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed pb-1">
+                  Mark the times you are available to guide others. Click on slots to toggle eligibility. Selected: <strong className="text-blue-600 font-semibold">{availabilities.length}</strong>.
+                </p>
+
+                <div className="space-y-2.5 max-h-[280px] overflow-y-auto pr-1">
+                  {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
+                    <div key={day} className="space-y-1.5 p-2 bg-white rounded-xl border border-slate-150/70 shadow-2xs flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                      <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest sm:w-20 shrink-0">{day}</span>
+                      <div className="flex flex-wrap gap-1 md:flex-1">
+                        {['09:00 - 11:00', '11:00 - 13:00', '13:00 - 15:00', '15:00 - 17:00', '17:00 - 19:00', '19:00 - 21:00'].map((slot) => {
+                          const slotString = `${day} ${slot}`;
+                          const isSelected = availabilities.includes(slotString);
+                          return (
+                            <button
+                              key={slot}
+                              type="button"
+                              onClick={() => {
+                                if (isSelected) {
+                                  setAvailabilities(availabilities.filter(s => s !== slotString));
+                                } else {
+                                  setAvailabilities([...availabilities, slotString]);
+                                }
+                              }}
+                              className={`px-2 py-1 rounded text-[10px] font-bold transition-all border shrink-0 cursor-pointer ${
+                                isSelected
+                                  ? 'bg-blue-500 border-blue-600 text-white'
+                                  : 'bg-slate-50 border-slate-150 text-slate-600 hover:bg-slate-100/80 hover:border-slate-250'
+                              }`}
+                            >
+                              {slot}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <button

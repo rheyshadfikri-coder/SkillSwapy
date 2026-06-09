@@ -102,7 +102,7 @@ export default function HomeView({ onNavigate, onExploreSkill, popularMentors, o
           className="font-display text-5xl sm:text-[72px] font-extrabold tracking-tight text-[#0F172A] dark:text-white leading-[0.95]"
         >
           Trade Your Skills.<br className="hidden sm:inline" />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#60A5FA] via-[#C4B5FD] to-[#67E8F9]">Learn Together.</span>
+          <span className="text-gradient-liquid">Learn Together.</span>
         </motion.h1>
 
         <motion.p 

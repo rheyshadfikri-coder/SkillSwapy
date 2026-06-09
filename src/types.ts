@@ -24,6 +24,8 @@ export interface User {
   level: number;
   interests: string[];
   skills: Skill[];
+  availabilities?: string[];
+  calendarEnabled?: boolean;
   socialLinks?: {
     website?: string;
     github?: string;

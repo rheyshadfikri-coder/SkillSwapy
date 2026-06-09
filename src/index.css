@@ -125,6 +125,20 @@
   -webkit-text-fill-color: transparent;
 }
 
+.text-gradient-liquid {
+  background: linear-gradient(270deg, #60A5FA, #C4B5FD, #67E8F9, #818CF8, #60A5FA);
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: liquid-gradient 6s ease infinite;
+}
+
+@keyframes liquid-gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 .text-gradient-purple {
   background: linear-gradient(135deg, #c4b5fd 0%, #67e8f9 100%);
   -webkit-background-clip: text;

@@ -4,9 +4,10 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Search, Filter, Compass, Star, MapPin, Sparkles, MessageSquare, Briefcase, GraduationCap } from 'lucide-react';
+import { Search, Filter, Compass, Star, MapPin, Sparkles, MessageSquare, Briefcase, GraduationCap, Calendar } from 'lucide-react';
 import { motion } from 'motion/react';
-import { User } from '../types';
+import { User, Session } from '../types';
+import BookingModal from './BookingModal';
 
 interface ExploreViewProps {
   users: User[];
@@ -15,6 +16,7 @@ interface ExploreViewProps {
   prefilledSearch?: string;
   onClearPrefilledSearch?: () => void;
   onNavigate?: (page: string) => void;
+  onAddSession?: (session: Session) => void;
 }
 
 export default function ExploreView({ 
@@ -23,11 +25,15 @@ export default function ExploreView({
   onSelectMentor, 
   prefilledSearch = '',
   onClearPrefilledSearch,
-  onNavigate
+  onNavigate,
+  onAddSession
 }: ExploreViewProps) {
   const [search, setSearch] = useState(prefilledSearch);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedLevel, setSelectedLevel] = useState('all');
+  const [bookingMentor, setBookingMentor] = useState<User | null>(null);
+
+  const currentUser = users.find(u => u.id === currentUserId);
 
   const categories = [
     { id: 'all', name: 'All Categories' },
@@ -378,15 +384,33 @@ export default function ExploreView({
                       <span>Bikin & Kelola Portofolio</span>
                     </motion.button>
                   ) : (
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => onSelectMentor(user.id)}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-slate-900 to-indigo-950 text-white font-display text-xs font-semibold rounded-xl shadow cursor-pointer text-center"
-                    >
-                      <MessageSquare className="h-3.5 w-3.5 text-cyan-400 shrink-0" />
-                      <span>Connect Now</span>
-                    </motion.button>
+                    <div className="flex gap-2 flex-wrap">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => onSelectMentor(user.id)}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 font-display text-[11px] font-bold rounded-xl shadow-2xs cursor-pointer text-center transition"
+                      >
+                        <MessageSquare className="h-3 w-3 text-indigo-505 shrink-0" />
+                        <span>Chat</span>
+                      </motion.button>
+
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => {
+                          if (!currentUserId) {
+                            onSelectMentor(user.id);
+                          } else {
+                            setBookingMentor(user);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-650 text-white font-display text-[11px] font-bold rounded-xl shadow-sm cursor-pointer text-center transition"
+                      >
+                        <Calendar className="h-3.5 w-3.5 text-cyan-300 shrink-0" />
+                        <span>Book Swap</span>
+                      </motion.button>
+                    </div>
                   )}
                 </div>
               </motion.div>
@@ -394,6 +418,20 @@ export default function ExploreView({
           </motion.div>
         )}
       </div>
+
+      {bookingMentor && currentUser && (
+        <BookingModal
+          isOpen={!!bookingMentor}
+          onClose={() => setBookingMentor(null)}
+          mentor={bookingMentor}
+          currentUser={currentUser}
+          onBookSession={(newSess) => {
+            if (onAddSession) {
+              onAddSession(newSess);
+            }
+          }}
+        />
+      )}
 
       {/* Suggested matchmaking banner for public catalog */}
       <motion.div 

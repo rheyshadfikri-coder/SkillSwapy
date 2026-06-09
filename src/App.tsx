@@ -193,6 +193,15 @@ export default function App() {
 
   const handleUpdateSessions = (revisedSessions: Session[]) => {
     setSessions(revisedSessions);
+    persistSessions(revisedSessions);
+  };
+
+  const handleAddSession = (newSess: Session) => {
+    setSessions(prev => {
+      const next = [newSess, ...prev];
+      persistSessions(next);
+      return next;
+    });
   };
 
   const handleLogout = () => {
@@ -228,6 +237,7 @@ export default function App() {
             prefilledSearch={prefilledExploreSearch}
             onClearPrefilledSearch={() => setPrefilledExploreSearch('')}
             onNavigate={handleLinkNavigate}
+            onAddSession={handleAddSession}
           />
         );
       case 'about':
@@ -303,6 +313,7 @@ export default function App() {
             currentUser={currentUser}
             projects={projects}
             onAddProject={handleAddProject}
+            onExploreSkill={handleExploreSkillShortcut}
           />
         );
       case 'chat':
@@ -314,6 +325,7 @@ export default function App() {
             onSendMessage={handleSendMessage}
             messages={messages}
             activeChatPartnerId={activeChatPartnerId}
+            onAddSession={handleAddSession}
           />
         );
       default:
