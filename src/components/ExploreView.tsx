@@ -14,6 +14,7 @@ interface ExploreViewProps {
   onSelectMentor: (mentorId: string) => void;
   prefilledSearch?: string;
   onClearPrefilledSearch?: () => void;
+  onNavigate?: (page: string) => void;
 }
 
 export default function ExploreView({ 
@@ -21,7 +22,8 @@ export default function ExploreView({
   currentUserId, 
   onSelectMentor, 
   prefilledSearch = '',
-  onClearPrefilledSearch
+  onClearPrefilledSearch,
+  onNavigate
 }: ExploreViewProps) {
   const [search, setSearch] = useState(prefilledSearch);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -51,8 +53,7 @@ export default function ExploreView({
   };
 
   const filteredUsers = users.filter((u) => {
-    // Exclude current logged in user from list to prevent chatting with self
-    if (currentUserId && u.id === currentUserId) return false;
+    // Keep current user in the searchable pool so they can verify their live database status
 
     // Search query matches username, bio, title, or any skill names
     const searchMatch = 
@@ -291,6 +292,11 @@ export default function ExploreView({
                         <span className="px-2 py-0.5 text-[10px] font-extrabold bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 rounded-full border border-blue-100 dark:border-blue-900 font-display">
                           Level {user.level}
                         </span>
+                        {user.id === currentUserId && (
+                          <span className="px-2 py-0.5 text-[10px] font-extrabold bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 rounded-full border border-emerald-250 dark:border-emerald-900 font-display">
+                            Profil Anda
+                          </span>
+                        )}
                         {user.reputationBadge && (
                           <span className="px-2 py-0.5 text-[9px] font-extrabold bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 rounded-full border border-purple-100 dark:border-purple-900 uppercase tracking-wider font-sans">
                             {user.reputationBadge}
@@ -361,15 +367,27 @@ export default function ExploreView({
                     ))}
                   </div>
 
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => onSelectMentor(user.id)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-slate-900 to-indigo-950 text-white font-display text-xs font-semibold rounded-xl shadow cursor-pointer text-center"
-                  >
-                    <MessageSquare className="h-3.5 w-3.5 text-cyan-400 shrink-0" />
-                    <span>Connect Now</span>
-                  </motion.button>
+                  {user.id === currentUserId ? (
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => onNavigate && onNavigate('portfolio')}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-700 text-white font-display text-xs font-bold rounded-xl shadow cursor-pointer text-center border border-emerald-500/10"
+                    >
+                      <Briefcase className="h-3.5 w-3.5 text-emerald-250 shrink-0" />
+                      <span>Bikin & Kelola Portofolio</span>
+                    </motion.button>
+                  ) : (
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => onSelectMentor(user.id)}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-slate-900 to-indigo-950 text-white font-display text-xs font-semibold rounded-xl shadow cursor-pointer text-center"
+                    >
+                      <MessageSquare className="h-3.5 w-3.5 text-cyan-400 shrink-0" />
+                      <span>Connect Now</span>
+                    </motion.button>
+                  )}
                 </div>
               </motion.div>
             ))}

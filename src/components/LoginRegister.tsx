@@ -121,8 +121,9 @@ export default function LoginRegister({ initialMode = 'login', onAuthSuccess, on
       const usersList = registeredUsers.length ? registeredUsers : INITIAL_USERS;
       const match = usersList.find(u => u.email.toLowerCase() === emailAddr.toLowerCase());
       
+      const newClerkId = `usr_clerk_${Date.now()}`;
       const authenticatedUser: User = match || {
-        id: `usr_clerk_${Date.now()}`,
+        id: newClerkId,
         username: name,
         email: emailAddr,
         bio: 'Authenticated safely using Clerk Google SSO. Welcome to the SkillSwap node mesh!',
@@ -132,7 +133,7 @@ export default function LoginRegister({ initialMode = 'login', onAuthSuccess, on
         level: 2,
         interests: ['UI/UX Design', 'Software Automation', 'Academic Writing'],
         skills: [
-          { id: 'usr_clerk_s1', userId: 'usr_clerk_temp', name: 'Clerk SSO Security', type: 'teach', level: 'expert' }
+          { id: `sk_clerk_s1_${Date.now()}`, userId: newClerkId, name: 'Clerk SSO Security', type: 'teach', level: 'expert' }
         ]
       };
 

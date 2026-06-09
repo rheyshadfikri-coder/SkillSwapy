@@ -11,7 +11,7 @@ import {
   onSnapshot
 } from 'firebase/firestore';
 import { User, Project, DiscussionPost, Message, Session } from '../types';
-import { INITIAL_USERS } from '../data/initialData';
+import { INITIAL_USERS, INITIAL_PROJECTS } from '../data/initialData';
 
 // Firestore operation types for our specialized handleFirestoreError
 enum OperationType {
@@ -164,5 +164,34 @@ export function persistSessions(sessions: Session[]): void {
     localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
   } catch (err) {
     console.error('Failed to persist sessions', err);
+  }
+}
+
+const PROJECTS_STORAGE_KEY = 'skillswap_projects_db';
+
+/**
+ * Load portfolio projects.
+ */
+export function getPersistedProjects(): Project[] {
+  try {
+    const stored = localStorage.getItem(PROJECTS_STORAGE_KEY);
+    if (!stored) {
+      localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(INITIAL_PROJECTS));
+      return INITIAL_PROJECTS;
+    }
+    return JSON.parse(stored);
+  } catch (err) {
+    return INITIAL_PROJECTS;
+  }
+}
+
+/**
+ * Save portfolio projects.
+ */
+export function persistProjects(projects: Project[]): void {
+  try {
+    localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
+  } catch (err) {
+    console.error('Failed to persist projects', err);
   }
 }

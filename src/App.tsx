@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import { User, Session, Message, Project, DiscussionPost } from './types';
 import { INITIAL_USERS, INITIAL_MESSAGES, INITIAL_PROJECTS, INITIAL_DISCUSSIONS, INITIAL_POSTS } from './data/initialData';
-import { getPersistedUsers, persistUserAccount, getPersistedSessions, persistSessions } from './lib/db';
+import { getPersistedUsers, persistUserAccount, getPersistedSessions, persistSessions, getPersistedProjects, persistProjects } from './lib/db';
 
 // Component view imports
 import HomeView from './components/HomeView';
@@ -77,7 +77,9 @@ export default function App() {
 
   const [users, setUsers] = useState<User[]>(INITIAL_USERS);
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
-  const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
+  const [projects, setProjects] = useState<Project[]>(() => {
+    return getPersistedProjects();
+  });
   const [forumPosts, setForumPosts] = useState<DiscussionPost[]>(INITIAL_POSTS);
 
   // Active chat partner pointer (facilitates instant boot parameters)
@@ -167,7 +169,11 @@ export default function App() {
   };
 
   const handleAddProject = (proj: Project) => {
-    setProjects(prev => [proj, ...prev]);
+    setProjects(prev => {
+      const next = [proj, ...prev];
+      persistProjects(next);
+      return next;
+    });
   };
 
   const handleAddForumPost = (postPayload: Omit<DiscussionPost, 'id' | 'timestamp' | 'likes' | 'comments'>) => {
@@ -221,6 +227,7 @@ export default function App() {
             onSelectMentor={handleSelectMentor}
             prefilledSearch={prefilledExploreSearch}
             onClearPrefilledSearch={() => setPrefilledExploreSearch('')}
+            onNavigate={handleLinkNavigate}
           />
         );
       case 'about':
